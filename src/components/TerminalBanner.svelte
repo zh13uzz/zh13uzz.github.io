@@ -18,7 +18,7 @@
 
   async function typeTerminal() {
     // Delay khởi tạo cho smooth hơn
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 1500));
     
     for (let i = 0; i < steps.length; i++) {
       if (steps[i].type === 'cmd') {
@@ -27,27 +27,31 @@
         showCursor = true;
         
         // Delay êm hơn trước khi bắt đầu gõ
-        await new Promise(r => setTimeout(r, 300));
+        await new Promise(r => setTimeout(r, 600));
         
-        // Gõ từng ký tự với tốc độ mượt mà và tự nhiên hơn
+        // Gõ từng ký tự với hiệu ứng từ trái sang phải - chậm hơn
         for (let j = 0; j < steps[i].text.length; j++) {
-          typing += steps[i].text[j];
+          typing = steps[i].text.substring(0, j + 1);
           
-          // Tốc độ gõ mượt mà và tự nhiên (80-150ms)
-          let delay = 80 + Math.random() * 70;
+          // Tốc độ gõ chậm hơn và tự nhiên hơn (150-300ms)
+          let delay = 150 + Math.random() * 150;
           
-          // Thêm hiệu ứng ngừng ngắn tại space và dấu câu
+          // Thêm hiệu ứng ngừng dài hơn tại space và dấu câu
           if (steps[i].text[j] === ' ') {
-            delay += 50;
+            delay += 200; // Dừng lâu hơn ở space
+            await new Promise(r => setTimeout(r, delay));
+            continue;
           } else if (['.', '/', '-', '_'].includes(steps[i].text[j])) {
-            delay += 30;
+            delay += 120; // Dừng lâu hơn ở dấu câu
+            await new Promise(r => setTimeout(r, delay));
+            continue;
           }
           
           await new Promise(r => setTimeout(r, delay));
         }
         
-        // Dừng lại một chút sau khi gõ xong để tạo cảm giác tự nhiên
-        await new Promise(r => setTimeout(r, 200));
+        // Dừng lại lâu hơn sau khi gõ xong để tạo cảm giác tự nhiên
+        await new Promise(r => setTimeout(r, 800));
         
         // Gõ xong thì tắt cursor và isTyping trước khi push vào displayedLines
         isTyping = false;
@@ -65,7 +69,7 @@
         displayedLines = [...displayedLines, { type: 'result', text: steps[i].text }];
         
         // Delay êm hơn trước lệnh tiếp theo
-        await new Promise(r => setTimeout(r, 800 + Math.random() * 400));
+        await new Promise(r => setTimeout(r, 1200 + Math.random() * 600));
       }
       stepIndex = i + 1;
     }
@@ -246,21 +250,17 @@
   
   .terminal-line.fade-in {
     opacity: 0;
-    animation: smoothSlideIn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    animation: softAppear 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   }
   
-  @keyframes smoothSlideIn {
+  @keyframes softAppear {
     0% {
       opacity: 0;
-      transform: translateX(-15px) translateY(5px);
-    }
-    60% {
-      opacity: 0.8;
-      transform: translateX(2px) translateY(0px);
+      transform: translateY(8px);
     }
     100% {
       opacity: 1;
-      transform: translateX(0) translateY(0);
+      transform: translateY(0);
     }
   }
 
@@ -281,7 +281,8 @@
     margin-left: 4px;
     display: inline-block;
     min-width: 1px;
-    transition: all 0.1s ease-out;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   .terminal-result {
@@ -291,34 +292,63 @@
     font-family: inherit;
     opacity: 0.9;
     flex: 1;
-    transition: all 0.3s ease-out;
   }
 
+  /* Con trỏ nằm ngang */
   .cursor {
     display: inline-block;
-    width: 2px;
-    height: 18px;
-    background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
-    animation: smoothBlink 1.5s ease-in-out infinite;
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+    width: 12px;
+    height: 3px;
+    background: linear-gradient(90deg, #00ff64 0%, #00cc50 100%);
+    animation: horizontalBlink 1.5s ease-in-out infinite;
+    box-shadow: 
+      0 0 6px rgba(0, 255, 100, 0.6),
+      0 0 12px rgba(0, 255, 100, 0.3);
     margin-left: 2px;
+    margin-bottom: 2px;
     flex-shrink: 0;
-    vertical-align: middle;
-    border-radius: 1px;
+    vertical-align: baseline;
+    border-radius: 2px;
+    position: relative;
+    transform: translateY(6px);
   }
 
-  @keyframes smoothBlink {
+  .cursor::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #ffffff 0%, #00ff64 100%);
+    border-radius: 2px;
+    opacity: 0.8;
+    animation: horizontalCursorGlow 2.5s ease-in-out infinite;
+  }
+
+  @keyframes horizontalBlink {
     0%, 45% { 
       opacity: 1; 
-      transform: scaleY(1);
+      transform: translateY(6px) scaleX(1) scaleY(1);
     }
     50%, 95% { 
       opacity: 0.3; 
-      transform: scaleY(0.95);
+      transform: translateY(6px) scaleX(0.8) scaleY(0.9);
     }
     100% { 
       opacity: 1; 
-      transform: scaleY(1);
+      transform: translateY(6px) scaleX(1) scaleY(1);
+    }
+  }
+
+  @keyframes horizontalCursorGlow {
+    0%, 100% { 
+      opacity: 0.5;
+      transform: scaleX(1);
+    }
+    50% { 
+      opacity: 0.9;
+      transform: scaleX(1.2);
     }
   }
 
@@ -380,47 +410,30 @@
     flex: 1;
   }
 
-  .typing-char {
+  /* Hiệu ứng typing từ trái sang phải */
+  .typing-text {
     display: inline-block;
-    opacity: 0;
-    transform: translateY(-2px);
-    animation: typeChar 0.2s ease-out forwards;
-  }
-
-  @keyframes typeChar {
-    0% {
-      opacity: 0;
-      transform: translateY(-2px) scale(0.8);
-    }
-    50% {
-      opacity: 0.7;
-      transform: translateY(0px) scale(1.1);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0px) scale(1);
-    }
-  }
-
-  /* Hiệu ứng gõ phím mượt mà */
-  .terminal-cmd {
     overflow: hidden;
     white-space: nowrap;
+    border-right: none;
+    animation: typeReveal 0.2s ease-out;
   }
 
-  .smooth-typing {
-    animation: smoothType 0.1s ease-out;
-  }
-
-  @keyframes smoothType {
+  @keyframes typeReveal {
     0% {
-      transform: translateX(-1px);
-      text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+      transform: translateX(-2px);
+      opacity: 0.7;
     }
     100% {
       transform: translateX(0);
-      text-shadow: 0 0 2px rgba(255, 255, 255, 0.3);
+      opacity: 1;
     }
+  }
+
+  /* Loại bỏ các hiệu ứng không cần thiết */
+  .terminal-cmd {
+    overflow: visible;
+    white-space: nowrap;
   }
 </style>
 
@@ -454,7 +467,7 @@
             <div class="cmd-container">
               <span class="terminal-prompt">nd0@darknet:~#</span>
               <div class="typing-container">
-                <span class="terminal-cmd">{typing}</span>
+                <span class="terminal-cmd typing-text">{typing}</span>
                 {#if showCursor}
                   <span class="cursor"></span>
                 {/if}
