@@ -16,6 +16,9 @@
   let isTyping = false;
   let stepIndex = 0;
 
+  // Thêm biến cho từng ký tự typing
+  $: typingChars = typing.split("");
+
   async function typeTerminal() {
     // Delay khởi tạo cho smooth hơn
     await new Promise(r => setTimeout(r, 1500));
@@ -435,6 +438,23 @@
     overflow: visible;
     white-space: nowrap;
   }
+
+  .typing-char {
+    display: inline-block;
+    opacity: 0;
+    transform: translateX(-8px) scale(0.98);
+    animation: slideInChar 0.35s cubic-bezier(.23,1.02,.67,1) forwards;
+  }
+  @keyframes slideInChar {
+    0% {
+      opacity: 0;
+      transform: translateX(-8px) scale(0.98);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
 </style>
 
 <div class="terminal-container">
@@ -453,7 +473,7 @@
         {#each displayedLines as line, i (i)}
           {#if line.type === 'cmd'}
             <div class="terminal-line">
-              <span class="terminal-prompt">nd0@darknet:~#</span>
+              <span class="terminal-prompt">nd0@darknet:/# </span>
               <span class="terminal-cmd">{line.text}</span>
             </div>
           {:else}
@@ -465,9 +485,13 @@
         {#if isTyping}
           <div class="terminal-line">
             <div class="cmd-container">
-              <span class="terminal-prompt">nd0@darknet:~#</span>
+              <span class="terminal-prompt">nd0@darknet:/# </span>
               <div class="typing-container">
-                <span class="terminal-cmd typing-text">{typing}</span>
+                <span class="terminal-cmd typing-text">
+                  {#each typingChars as char, idx}
+                    <span class="typing-char" style="animation-delay: {idx * 0.03}s">{char}</span>
+                  {/each}
+                </span>
                 {#if showCursor}
                   <span class="cursor"></span>
                 {/if}
