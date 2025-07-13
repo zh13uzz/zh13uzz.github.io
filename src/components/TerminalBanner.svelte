@@ -32,20 +32,20 @@
         // Delay êm hơn trước khi bắt đầu gõ
         await new Promise(r => setTimeout(r, 600));
         
-        // Gõ từng ký tự với hiệu ứng từ trái sang phải - chậm hơn
+        // Gõ từng ký tự với hiệu ứng từ trái sang phải - mượt hơn
         for (let j = 0; j < steps[i].text.length; j++) {
           typing = steps[i].text.substring(0, j + 1);
           
-          // Tốc độ gõ chậm hơn và tự nhiên hơn (150-300ms)
-          let delay = 150 + Math.random() * 150;
+          // Tốc độ gõ mượt hơn và tự nhiên hơn (80-200ms)
+          let delay = 80 + Math.random() * 120;
           
           // Thêm hiệu ứng ngừng dài hơn tại space và dấu câu
           if (steps[i].text[j] === ' ') {
-            delay += 200; // Dừng lâu hơn ở space
+            delay += 150; // Dừng lâu hơn ở space
             await new Promise(r => setTimeout(r, delay));
             continue;
           } else if (['.', '/', '-', '_'].includes(steps[i].text[j])) {
-            delay += 120; // Dừng lâu hơn ở dấu câu
+            delay += 100; // Dừng lâu hơn ở dấu câu
             await new Promise(r => setTimeout(r, delay));
             continue;
           }
@@ -54,7 +54,7 @@
         }
         
         // Dừng lại lâu hơn sau khi gõ xong để tạo cảm giác tự nhiên
-        await new Promise(r => setTimeout(r, 800));
+        await new Promise(r => setTimeout(r, 600));
         
         // Gõ xong thì tắt cursor và isTyping trước khi push vào displayedLines
         isTyping = false;
@@ -65,14 +65,14 @@
         typing = '';
         
         // Delay nhẹ nhàng trước khi hiện kết quả
-        await new Promise(r => setTimeout(r, 400));
+        await new Promise(r => setTimeout(r, 300));
         
       } else {
         // Kết quả hiện ra với hiệu ứng slide in mượt mà
         displayedLines = [...displayedLines, { type: 'result', text: steps[i].text }];
         
         // Delay êm hơn trước lệnh tiếp theo
-        await new Promise(r => setTimeout(r, 1200 + Math.random() * 600));
+        await new Promise(r => setTimeout(r, 1000 + Math.random() * 400));
       }
       stepIndex = i + 1;
     }
@@ -288,6 +288,13 @@
     overflow: hidden;
   }
 
+  /* Màu xanh lá cho command thực thi */
+  .terminal-cmd.executable {
+    color: #00ff64;
+    text-shadow: 0 0 4px rgba(0, 255, 100, 0.4);
+    font-weight: 500;
+  }
+
   .terminal-result {
     color: #f8fafc;
     font-weight: 400;
@@ -295,6 +302,13 @@
     font-family: inherit;
     opacity: 0.9;
     flex: 1;
+  }
+
+  /* Màu xanh lá cho file thực thi */
+  .terminal-result.executable {
+    color: #00ff64;
+    text-shadow: 0 0 4px rgba(0, 255, 100, 0.4);
+    font-weight: 500;
   }
 
   /* Con trỏ nằm ngang */
@@ -413,19 +427,19 @@
     flex: 1;
   }
 
-  /* Hiệu ứng typing từ trái sang phải */
+  /* Hiệu ứng typing từ trái sang phải - mượt hơn */
   .typing-text {
     display: inline-block;
     overflow: hidden;
     white-space: nowrap;
     border-right: none;
-    animation: typeReveal 0.2s ease-out;
+    animation: typeReveal 0.15s ease-out;
   }
 
   @keyframes typeReveal {
     0% {
-      transform: translateX(-2px);
-      opacity: 0.7;
+      transform: translateX(-1px);
+      opacity: 0.8;
     }
     100% {
       transform: translateX(0);
@@ -442,13 +456,14 @@
   .typing-char {
     display: inline-block;
     opacity: 0;
-    transform: translateX(-8px) scale(0.98);
-    animation: slideInChar 0.35s cubic-bezier(.23,1.02,.67,1) forwards;
+    transform: translateX(-2px) scale(0.995);
+    animation: slideInChar 0.18s cubic-bezier(.25,.46,.45,.94) forwards;
   }
+  
   @keyframes slideInChar {
     0% {
       opacity: 0;
-      transform: translateX(-8px) scale(0.98);
+      transform: translateX(-2px) scale(0.995);
     }
     100% {
       opacity: 1;
@@ -474,11 +489,11 @@
           {#if line.type === 'cmd'}
             <div class="terminal-line">
               <span class="terminal-prompt">nd0@darknet:/# </span>
-              <span class="terminal-cmd">{line.text}</span>
+              <span class="terminal-cmd" class:executable={line.text === './welcome'}>{line.text}</span>
             </div>
           {:else}
             <div class="terminal-line fade-in">
-              <span class="terminal-result">{line.text}</span>
+              <span class="terminal-result" class:executable={line.text === 'welcome'}>{line.text}</span>
             </div>
           {/if}
         {/each}
@@ -487,9 +502,9 @@
             <div class="cmd-container">
               <span class="terminal-prompt">nd0@darknet:/# </span>
               <div class="typing-container">
-                <span class="terminal-cmd typing-text">
+                <span class="terminal-cmd typing-text" class:executable={typing === './welcome'}>
                   {#each typingChars as char, idx}
-                    <span class="typing-char" style="animation-delay: {idx * 0.03}s">{char}</span>
+                    <span class="typing-char" style="animation-delay: {idx * 0.02}s">{char}</span>
                   {/each}
                 </span>
                 {#if showCursor}
